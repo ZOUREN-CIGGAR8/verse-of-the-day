@@ -21,42 +21,20 @@
       try {
         const proxy = 'https://api.allorigins.win/raw?url=';
         const target = 'https://www.verseoftheday.com/es/';
-        const res = await fetch(proxy + encodeURIComponent(target));
-        const html = await res.text();
+        const response = await fetch(proxy + encodeURIComponent(target));
+        const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Contenedor principal
-        const verseContainer = doc.querySelector('.bibleVerse');
-        if (!verseContainer) throw new Error('Contenedor de versículo no encontrado');
+        // Extraer el texto del verso desde el contenedor bilingual-left
+        const verseDiv = doc.querySelector('div.bilingual-left');
+        const verseText = verseDiv ? verseDiv.textContent.trim() : '';
 
-        // Primer intento: blockquote (solo el texto bíblico)
-        let verseText = '';
-        const blockquote = verseContainer.querySelector('blockquote');
-        if (blockquote) {
-          verseText = blockquote.textContent.trim();
-        }
+        // Extraer la referencia
+        const refEl = doc.querySelector('.reference');
+        const verseRef = refEl ? refEl.textContent.trim() : '';
 
-        // Obtengo la referencia (junto al blockquote o separada)
-        let verseRef = '';
-        const refEl = verseContainer.querySelector('.reference');
-        if (refEl) {
-          verseRef = refEl.textContent.trim();
-        }
-
-        // Fallback: si no hay blockquote, tomo el primer <p> sin oraciones de oración
-        if (!verseText) {
-          const ps = verseContainer.querySelectorAll('p');
-          for (const p of ps) {
-            const text = p.textContent.trim();
-            // Ignoro párrafos muy largos o con oraciones de oración ("Padre", "oro", "Amén")
-            if (text.length < 200 && !/oro|Am[eé]n|Padre/.test(text)) {
-              verseText = text;
-              break;
-            }
-          }
-        }
-
+        // Mostrar en la página
         document.getElementById('verse').textContent = verseRef || 'Referencia no encontrada';
         document.getElementById('verse-content').textContent = verseText || 'Versículo no encontrado';
       } catch (error) {
