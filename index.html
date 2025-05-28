@@ -26,15 +26,36 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Extraer directamente del contenedor .bibleVerse
+        // Contenedor principal
         const verseContainer = doc.querySelector('.bibleVerse');
         if (!verseContainer) throw new Error('Contenedor de versículo no encontrado');
 
-        const verseTextEl = verseContainer.querySelector('p');
-        const verseRefEl = verseContainer.querySelector('.reference');
+        // Primer intento: blockquote (solo el texto bíblico)
+        let verseText = '';
+        const blockquote = verseContainer.querySelector('blockquote');
+        if (blockquote) {
+          verseText = blockquote.textContent.trim();
+        }
 
-        const verseText = verseTextEl ? verseTextEl.textContent.trim() : '';
-        const verseRef = verseRefEl ? verseRefEl.textContent.trim() : '';
+        // Obtengo la referencia (junto al blockquote o separada)
+        let verseRef = '';
+        const refEl = verseContainer.querySelector('.reference');
+        if (refEl) {
+          verseRef = refEl.textContent.trim();
+        }
+
+        // Fallback: si no hay blockquote, tomo el primer <p> sin oraciones de oración
+        if (!verseText) {
+          const ps = verseContainer.querySelectorAll('p');
+          for (const p of ps) {
+            const text = p.textContent.trim();
+            // Ignoro párrafos muy largos o con oraciones de oración ("Padre", "oro", "Amén")
+            if (text.length < 200 && !/oro|Am[eé]n|Padre/.test(text)) {
+              verseText = text;
+              break;
+            }
+          }
+        }
 
         document.getElementById('verse').textContent = verseRef || 'Referencia no encontrada';
         document.getElementById('verse-content').textContent = verseText || 'Versículo no encontrado';
