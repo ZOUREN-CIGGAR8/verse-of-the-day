@@ -18,22 +18,9 @@
       text-align: center;
       padding: 1rem;
     }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
-    h2 {
-      font-size: 1.5rem;
-      font-weight: normal;
-      margin: 0.5rem 0;
-      color: #555;
-    }
-    #verse-content {
-      font-size: 1.2rem;
-      margin-top: 1rem;
-      max-width: 600px;
-      line-height: 1.5;
-    }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; font-weight: normal; margin: 0.5rem 0; color: #555; }
+    #verse-content { font-size: 1.2rem; margin-top: 1rem; max-width: 600px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -46,23 +33,46 @@
       try {
         const proxy = 'https://api.allorigins.win/raw?url=';
         const target = 'https://www.verseoftheday.com/es/';
-        const response = await fetch(proxy + encodeURIComponent(target));
-        const html = await response.text();
+        const res = await fetch(proxy + encodeURIComponent(target));
+        const html = await res.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Buscamos el contenedor del versículo
-        const verseContainer = doc.querySelector('.bibleVerse');
-        const verseText = verseContainer?.querySelector('p')?.textContent.trim() || '';
-        const verseRef = verseContainer?.querySelector('.reference')?.textContent.trim() || '';
+        let verseText = '';
+        let verseRef = '';
 
-        // Si no encontró, avisar
+        // Intento 1: blockquote y siguiente <p>
+        const block = doc.querySelector('blockquote');
+        if (block) {
+          verseText = block.textContent.trim();
+          const sib = block.nextElementSibling;
+          if (sib && sib.textContent.trim().startsWith('—')) {
+            verseRef = sib.textContent.trim().replace(/^—\s*/, '');
+          }
+        }
+
+        // Intento 2: div con clase bibleVerse
+        if (!verseText) {
+          const vb = doc.querySelector('.bibleVerse');
+          verseText = vb?.querySelector('p')?.textContent.trim() || '';
+          verseRef = vb?.querySelector('.reference')?.textContent.trim() || '';
+        }
+
+        // Intento 3: primeros <p>
+        if (!verseText) {
+          const ps = doc.querySelectorAll('p');
+          if (ps.length >= 3) {
+            verseText = ps[1].textContent.trim();
+            verseRef = ps[2].textContent.trim().replace(/^—\s*/, '');
+          }
+        }
+
         document.getElementById('verse').textContent = verseRef || 'Referencia no encontrada';
         document.getElementById('verse-content').textContent = verseText || 'Versículo no encontrado';
-      } catch (error) {
-        console.error('Error al cargar versículo:', error);
+      } catch (e) {
+        console.error(e);
         document.getElementById('verse').textContent = 'Error al cargar';
-        document.getElementById('verse-content').textContent = 'No se pudo obtener el versículo del día.';
+        document.getElementById('verse-content').textContent = 'No se pudo obtener el versículo.';
       }
     }
     loadVerse();
