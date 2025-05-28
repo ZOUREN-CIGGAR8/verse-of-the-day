@@ -5,10 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Versículo del día</title>
   <style>
-    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f5f5f5; color: #333; text-align: center; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    h2 { font-size: 1.5rem; font-weight: normal; margin: 0.5rem 0; color: #555; }
-    #verse-content { font-size: 1.2rem; margin-top: 1rem; max-width: 600px; line-height: 1.4; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+      color: #333;
+      text-align: center;
+      padding: 1rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: normal;
+      margin: 0.5rem 0;
+      color: #555;
+    }
+    #verse-content {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      max-width: 600px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -21,33 +46,23 @@
       try {
         const proxy = 'https://api.allorigins.win/raw?url=';
         const target = 'https://www.verseoftheday.com/es/';
-        const res = await fetch(proxy + encodeURIComponent(target));
-        const html = await res.text();
+        const response = await fetch(proxy + encodeURIComponent(target));
+        const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Seleccionamos el primer <p> tras el <h1> como el texto y el siguiente como referencia
-        const textEl = doc.querySelector('h1 + p');
-        const refEl = doc.querySelector('h1 + p + p');
+        // Buscamos el contenedor del versículo
+        const verseContainer = doc.querySelector('.bibleVerse');
+        const verseText = verseContainer?.querySelector('p')?.textContent.trim() || '';
+        const verseRef = verseContainer?.querySelector('.reference')?.textContent.trim() || '';
 
-        const verseText = textEl ? textEl.textContent.trim() : '';
-        let verseRef = refEl ? refEl.textContent.trim().replace(/^—/, '').trim() : '';
-
-        // Fallback genérico si los selectores no funcionan
-        if (!verseText) {
-          const allP = doc.querySelectorAll('p');
-          if (allP.length >= 2) {
-            verseText = allP[0].textContent.trim();
-            verseRef = allP[1].textContent.trim().replace(/^—/, '').trim();
-          }
-        }
-
-        document.getElementById('verse').textContent = verseRef;
-        document.getElementById('verse-content').textContent = verseText;
-      } catch (e) {
+        // Si no encontró, avisar
+        document.getElementById('verse').textContent = verseRef || 'Referencia no encontrada';
+        document.getElementById('verse-content').textContent = verseText || 'Versículo no encontrado';
+      } catch (error) {
+        console.error('Error al cargar versículo:', error);
         document.getElementById('verse').textContent = 'Error al cargar';
-        document.getElementById('verse-content').textContent = 'No se pudo obtener el versículo.';
-        console.error(e);
+        document.getElementById('verse-content').textContent = 'No se pudo obtener el versículo del día.';
       }
     }
     loadVerse();
