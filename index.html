@@ -5,10 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Versículo del día</title>
   <style>
-    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f5f5f5; color: #333; text-align: center; padding: 1rem; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    h2 { font-size: 1.5rem; font-weight: normal; margin: 0.5rem 0; color: #555; }
-    #verse-content { font-size: 1.2rem; margin-top: 1rem; max-width: 600px; line-height: 1.5; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+      color: #333;
+      text-align: center;
+      padding: 1rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: normal;
+      margin: 0.5rem 0;
+      color: #555;
+    }
+    #verse-content {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      max-width: 600px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -26,19 +51,15 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Extraer el texto del verso desde el contenedor bilingual-left
         const verseDiv = doc.querySelector('div.bilingual-left');
         const verseText = verseDiv ? verseDiv.textContent.trim() : '';
 
-        // Extraer la referencia
-        const refEl = doc.querySelector('.reference');
+        const refEl = doc.querySelector('span.reference');
         const verseRef = refEl ? refEl.textContent.trim() : '';
 
-        // Mostrar en la página
         document.getElementById('verse').textContent = verseRef || 'Referencia no encontrada';
         document.getElementById('verse-content').textContent = verseText || 'Versículo no encontrado';
       } catch (error) {
-        console.error('Error al cargar versículo:', error);
         document.getElementById('verse').textContent = 'Error al cargar';
         document.getElementById('verse-content').textContent = 'No se pudo obtener el versículo del día.';
       }
